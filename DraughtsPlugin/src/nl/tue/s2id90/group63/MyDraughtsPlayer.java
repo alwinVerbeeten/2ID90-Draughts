@@ -16,7 +16,7 @@ import org10x10.dam.game.Move;
 //       for your player during the tournament
 public class MyDraughtsPlayer  extends DraughtsPlayer{
     private int bestValue=0;
-    int maxSearchDepth;
+    int maxSearchDepth = 5;
     
     /** boolean that indicates that the GUI asked the player to stop thinking. */
     private boolean stopped;
@@ -89,8 +89,7 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
     {
         if (node.getState().isWhiteToMove()) {
             return alphaBetaMax(node, alpha, beta, depth);
-        } else  {
-            
+        } else  {            
             return alphaBetaMin(node, alpha, beta, depth);
         }
     }
@@ -117,6 +116,16 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
         if (stopped) { stopped = false; throw new AIStoppedException(); }
         DraughtsState state = node.getState();
         // ToDo: write an alphabeta search to compute bestMove and value
+        /*
+        if DepthLimitReached(Node) Return(Rating(Node))
+        NewNodes = Successors(Node)
+        While NewNodes != ∅
+            α = Maximum(α, AlphaBetaMin(First(NewNodes),α,β))
+            if α≥β Return(β) 
+            NewNodes = Rest(NewNodes)
+        Return(α)
+        */
+       
         Move bestMove = state.getMoves().get(0);
         int value = 0;
         node.setBestMove(bestMove);
