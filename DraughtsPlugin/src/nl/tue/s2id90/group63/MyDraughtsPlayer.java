@@ -16,7 +16,8 @@ import org10x10.dam.game.Move;
 //       for your player during the tournament
 public class MyDraughtsPlayer  extends DraughtsPlayer{
     private int bestValue=0;
-    int maxSearchDepth = 5;
+    int maxSearchDepth = 10;
+    int kingWorth = 15;
     
     /** boolean that indicates that the GUI asked the player to stop thinking. */
     private boolean stopped;
@@ -116,11 +117,16 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
         if (stopped) { stopped = false; throw new AIStoppedException(); }
         DraughtsState state = node.getState();
         //  if DepthLimitReached(Node) Return(Rating(Node))
-        if (maxSearchDepth == 0) { 
+        if (depth <= 0 || state.isEndState()) { 
            return evaluate(state);
         }
         // NewNodes = Successors(Node)
         List<Move> moves = state.getMoves();
+        // Make sure moves isn't empty
+        if(moves == null || moves.size() < 1){
+            System.out.print("ERROR!");
+            return beta;
+        }
         Move bestMove = moves.get(0); // TO DO --------------------
         //While NewNodes != ∅
         for(Move move : moves){
@@ -149,11 +155,16 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
         if (stopped) { stopped = false; throw new AIStoppedException(); }
         DraughtsState state = node.getState();
         //  if DepthLimitReached(Node) Return(Rating(Node))
-       if (maxSearchDepth == 0) { 
+       if (depth <= 0 || state.isEndState()) { 
            return evaluate(state);
         }
        // NewNodes = Successors(Node)
         List<Move> moves = state.getMoves();
+        // Make sure moves isn't empty
+        if(moves == null || moves.size() < 1){
+            System.out.print("ERROR!");
+            return alpha;
+        }
         Move bestMove = moves.get(0); // TO DO --------------------
         //While NewNodes != ∅
         for(Move move : moves){
@@ -184,9 +195,6 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
         int[] pieces = state.getPieces();
         
         int computedValue = 0;
-        int nPieces = 0;
-        int nSpot = 1;
-        boolean middle = false;
         
         //Check each square on the board for a piece, add points for white, remove points for black.
         for (int piece : pieces) {
@@ -195,45 +203,18 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
                     break;
                 case DraughtsState.WHITEPIECE: // piece is a white piece
                     computedValue = computedValue + 10;
-                    if (middle && improved) {
-                        computedValue++;
-                    }
-                    nPieces++;
                     break;
                 case DraughtsState.BLACKPIECE: // piece is a black piece
                     computedValue = computedValue - 10;
-                    if (middle && improved) {
-                        computedValue--;
-                    }
-                    nPieces++;
                     break;
                 case DraughtsState.WHITEKING: // piece is a white king
                     computedValue = computedValue + kingWorth;
-                    nPieces++;  
                     break;
                 case DraughtsState.BLACKKING: // piece is a black king
                     computedValue = computedValue - kingWorth;
-                    nPieces++;
                     break;
-            }         
-            nSpot++;
-            //Pieces in spots 21-24 and 27-30 are worth more to encourage the AI to take control of the center. 
-            if (nSpot == 21 || nSpot == 27) {
-                middle = true;
-            } else if (nSpot == 25 || nSpot == 31) {
-                middle = false;
             }
         }
-        // If the AI is winning, it should try to trade 1 for 1 as leads are more important with less pieces on the board. 
-        // Thus we remove points when there are alot of pieces left and you're winning. 
-        if (improved) {
-            if (computedValue < -19) {
-                computedValue = computedValue + nPieces / 4;
-            } else if (computedValue > 19) {
-                computedValue = computedValue - nPieces / 4;
-            }
-                
-        }
-        return computedValue ;
+        return computedValue;
     }
 }
