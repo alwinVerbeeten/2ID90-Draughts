@@ -179,5 +179,61 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
 
     /** A method that evaluates the given state. */
     // ToDo: write an appropriate evaluation function
-    int evaluate(DraughtsState state) { return 0; }
+    int evaluate(DraughtsState state) { 
+        //obtain pieces array
+        int[] pieces = state.getPieces();
+        
+        int computedValue = 0;
+        int nPieces = 0;
+        int nSpot = 1;
+        boolean middle = false;
+        
+        //Check each square on the board for a piece, add points for white, remove points for black.
+        for (int piece : pieces) {
+            switch (piece) {
+                case 0: // empty spot
+                    break;
+                case DraughtsState.WHITEPIECE: // piece is a white piece
+                    computedValue = computedValue + 10;
+                    if (middle && improved) {
+                        computedValue++;
+                    }
+                    nPieces++;
+                    break;
+                case DraughtsState.BLACKPIECE: // piece is a black piece
+                    computedValue = computedValue - 10;
+                    if (middle && improved) {
+                        computedValue--;
+                    }
+                    nPieces++;
+                    break;
+                case DraughtsState.WHITEKING: // piece is a white king
+                    computedValue = computedValue + kingWorth;
+                    nPieces++;  
+                    break;
+                case DraughtsState.BLACKKING: // piece is a black king
+                    computedValue = computedValue - kingWorth;
+                    nPieces++;
+                    break;
+            }         
+            nSpot++;
+            //Pieces in spots 21-24 and 27-30 are worth more to encourage the AI to take control of the center. 
+            if (nSpot == 21 || nSpot == 27) {
+                middle = true;
+            } else if (nSpot == 25 || nSpot == 31) {
+                middle = false;
+            }
+        }
+        // If the AI is winning, it should try to trade 1 for 1 as leads are more important with less pieces on the board. 
+        // Thus we remove points when there are alot of pieces left and you're winning. 
+        if (improved) {
+            if (computedValue < -19) {
+                computedValue = computedValue + nPieces / 4;
+            } else if (computedValue > 19) {
+                computedValue = computedValue - nPieces / 4;
+            }
+                
+        }
+        return computedValue ;
+    }
 }
