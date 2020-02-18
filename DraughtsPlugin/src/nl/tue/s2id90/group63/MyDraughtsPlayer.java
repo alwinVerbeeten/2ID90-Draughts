@@ -115,32 +115,66 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
             throws AIStoppedException {
         if (stopped) { stopped = false; throw new AIStoppedException(); }
         DraughtsState state = node.getState();
-        // ToDo: write an alphabeta search to compute bestMove and value
-        /*
-        if DepthLimitReached(Node) Return(Rating(Node))
-        NewNodes = Successors(Node)
-        While NewNodes != ∅
-            α = Maximum(α, AlphaBetaMin(First(NewNodes),α,β))
-            if α≥β Return(β) 
-            NewNodes = Rest(NewNodes)
-        Return(α)
-        */
-       
-        Move bestMove = state.getMoves().get(0);
-        int value = 0;
+        //  if DepthLimitReached(Node) Return(Rating(Node))
+        if (maxSearchDepth == 0) { 
+           return evaluate(state);
+        }
+        // NewNodes = Successors(Node)
+        List<Move> moves = state.getMoves();
+        Move bestMove = moves.get(0); // TO DO --------------------
+        //While NewNodes != ∅
+        for(Move move : moves){
+           // Move to next boardstate
+           state.doMove(move);
+           int oldBeta = beta;
+           // β = Minumum(β, AlphaBetaMin(First(NewNodes),α,β))
+           beta = Math.min(beta, alphaBetaMax(new DraughtsNode(state), alpha, beta, depth - 1));
+           //if α≥β Return(α)
+           if(alpha >= beta){
+               return alpha;
+           }
+           if(beta > oldBeta){
+               bestMove = move;
+           }
+           // Move to previous boardstate
+           state.undoMove(move);
+        }
+        // Return(β)
         node.setBestMove(bestMove);
-        return value;
+        return beta;
      }
     
     int alphaBetaMax(DraughtsNode node, int alpha, int beta, int depth)
             throws AIStoppedException {
         if (stopped) { stopped = false; throw new AIStoppedException(); }
         DraughtsState state = node.getState();
-        // ToDo: write an alphabeta search to compute bestMove and value
-        Move bestMove = state.getMoves().get(0);
-        int value = 0;
+        //  if DepthLimitReached(Node) Return(Rating(Node))
+       if (maxSearchDepth == 0) { 
+           return evaluate(state);
+        }
+       // NewNodes = Successors(Node)
+        List<Move> moves = state.getMoves();
+        Move bestMove = moves.get(0); // TO DO --------------------
+        //While NewNodes != ∅
+        for(Move move : moves){
+           // Move to next boardstate
+           state.doMove(move);
+           int oldAlpha = alpha;
+           // α = Maximum(α, AlphaBetaMin(First(NewNodes),α,β))
+           alpha = Math.max(alpha, alphaBetaMin(new DraughtsNode(state), alpha, beta, depth - 1));
+           //if α≥β Return(β)
+           if(alpha >= beta){
+               return beta;
+           }
+           if(alpha > oldAlpha){
+               bestMove = move;
+           }
+           // Move to previous boardstate
+           state.undoMove(move);
+        }
+        // Return(α)
         node.setBestMove(bestMove);
-        return value;
+        return alpha;
     }
 
     /** A method that evaluates the given state. */
