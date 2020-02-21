@@ -24,31 +24,43 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
 
     public MyDraughtsPlayer(int maxSearchDepth) {
         super("best.png"); // ToDo: replace with your own icon
-        this.maxSearchDepth = maxSearchDepth;
+        this.maxSearchDepth = 10;
     }
     
     @Override public Move getMove(DraughtsState s) {
+        DraughtsState s2 = s.clone();
         Move bestMove = null;
         bestValue = 0;
         DraughtsNode node = new DraughtsNode(s);    // the root of the search tree
-        try {
-            // compute bestMove and bestValue in a call to alphabeta
-            bestValue = alphaBeta(node, MIN_VALUE, MAX_VALUE, maxSearchDepth);
-            
-            // store the bestMove found uptill now
-            // NB this is not done in case of an AIStoppedException in alphaBeat()
-            bestMove  = node.getBestMove();
-            
-            // print the results for debugging reasons
-            System.err.format(
-                "%s: depth= %2d, best move = %5s, value=%d\n", 
-                this.getClass().getSimpleName(),maxSearchDepth, bestMove, bestValue
-            );
-        } catch (AIStoppedException ex) {  /* nothing to do */  }
+        boolean done = false;
+        int depth = 1;
+        while(!done){
+            try {
+                // compute bestMove and bestValue in a call to alphabeta
+                bestValue = alphaBeta(node, MIN_VALUE, MAX_VALUE, depth);
+
+                // store the bestMove found uptill now
+                // NB this is not done in case of an AIStoppedException in alphaBeat()
+                bestMove  = node.getBestMove();
+
+                // print the results for debugging reasons
+                System.err.format(
+                    "%s: depth= %2d, best move = %5s, value=%d\n", 
+                    this.getClass().getSimpleName(), depth, bestMove, bestValue
+                );
+                depth++; 
+                if(depth > 2000){
+                    done = true;
+                }
+        } catch (AIStoppedException ex) {  
+            done = true;
+        }}
         
         if (bestMove==null) {
             System.err.println("no valid move found!");
-            return getRandomValidMove(s);
+            System.out.print(s);
+            System.out.print(s2);
+            return getRandomValidMove(s2);
         } else {
             return bestMove;
         }
@@ -114,7 +126,10 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
      */
      int alphaBetaMin(DraughtsNode node, int alpha, int beta, int depth)
             throws AIStoppedException {
-        if (stopped) { stopped = false; throw new AIStoppedException(); }
+        if (stopped) { stopped = false; 
+        System.out.print("STOPPED!");
+        throw new AIStoppedException(); 
+        }
         DraughtsState state = node.getState();
         //  if DepthLimitReached(Node) Return(Rating(Node))
         if (depth <= 0 || state.isEndState()) { 
@@ -133,32 +148,40 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
            // Move to next boardstate
            state.doMove(move);
            int oldBeta = beta;
-           // β = Minumum(β, AlphaBetaMin(First(NewNodes),α,β))
+           // β = Minumum(β, AlphaBetaMax(First(NewNodes),α,β))
            beta = Math.min(beta, alphaBetaMax(new DraughtsNode(state), alpha, beta, depth - 1));
-           //if α≥β Return(α)
-           if(alpha >= beta){
-               return alpha;
-           }
-           if(beta > oldBeta){
-               bestMove = move;
-           }
+           
            // Move to previous boardstate
            state.undoMove(move);
+           
+           // Store the the new move if it is beter
+           if(beta < oldBeta){
+               bestMove = move;
+           }
+           
+           //if α≥β Return(α)
+           if(alpha >= beta){ 
+               node.setBestMove(bestMove);
+               return alpha;
+           }
         }
         // Return(β)
         node.setBestMove(bestMove);
         return beta;
-     }
+     } 
     
     int alphaBetaMax(DraughtsNode node, int alpha, int beta, int depth)
             throws AIStoppedException {
-        if (stopped) { stopped = false; throw new AIStoppedException(); }
+        if (stopped) { stopped = false; 
+        System.out.print("STOPPED!");
+        throw new AIStoppedException(); 
+        }
         DraughtsState state = node.getState();
         //  if DepthLimitReached(Node) Return(Rating(Node))
-       if (depth <= 0 || state.isEndState()) { 
+        if (depth <= 0 || state.isEndState()) { 
            return evaluate(state);
         }
-       // NewNodes = Successors(Node)
+        // NewNodes = Successors(Node)
         List<Move> moves = state.getMoves();
         // Make sure moves isn't empty
         if(moves == null || moves.size() < 1){
@@ -171,17 +194,22 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
            // Move to next boardstate
            state.doMove(move);
            int oldAlpha = alpha;
-           // α = Maximum(α, AlphaBetaMin(First(NewNodes),α,β))
+           // α = Maximim(α, AlphaBetaMin(First(NewNodes),α,β))
            alpha = Math.max(alpha, alphaBetaMin(new DraughtsNode(state), alpha, beta, depth - 1));
-           //if α≥β Return(β)
-           if(alpha >= beta){
-               return beta;
-           }
-           if(alpha > oldAlpha){
-               bestMove = move;
-           }
+           
            // Move to previous boardstate
            state.undoMove(move);
+           
+           // Store the the new move if it is beter
+           if(alpha < oldAlpha){
+               bestMove = move;
+           }
+           
+           //if α≥β Return(β)
+           if(alpha >= beta){ 
+               node.setBestMove(bestMove);
+               return beta;
+           }
         }
         // Return(α)
         node.setBestMove(bestMove);
