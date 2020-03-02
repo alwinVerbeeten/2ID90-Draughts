@@ -14,7 +14,7 @@ import org10x10.dam.game.Move;
  */
 // ToDo: rename this class (and hence this file) to have a distinct name
 //       for your player during the tournament
-public class MyDraughtsPlayer  extends DraughtsPlayer{
+public class Skynet  extends DraughtsPlayer{
     private int bestValue=0;
     int maxSearchDepth = 10;
     final int PIECESVALUE = 10; // Worth of a piece
@@ -32,10 +32,17 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
     /** boolean that indicates that the GUI asked the player to stop thinking. */
     private boolean stopped;
 
-    public MyDraughtsPlayer(int maxSearchDepth) {
-        super("best.png"); // ToDo: replace with your own icon
+    public Skynet(int maxSearchDepth) {
+        super("TERMINATOR.png"); // ToDo: replace with your own icon
         this.maxSearchDepth = 10;
         fillAdjectends();
+//        for(int r = 1; r < groups.length; r++){
+//            System.out.print("r: " + r + " has: ");
+//            for(int c = 0; c < 4; c++){
+//                System.out.print(groups[r][c] + " ");
+//            }
+//            System.out.println();
+//        }
     }
     
     @Override public Move getMove(DraughtsState s) {
