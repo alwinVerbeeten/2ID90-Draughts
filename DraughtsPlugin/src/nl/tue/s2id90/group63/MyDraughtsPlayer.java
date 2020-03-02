@@ -20,10 +20,14 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
     final int PIECESVALUE = 10; // Worth of a piece
     final int KINGSWORTH = 20; // Worth of a king piece
     final int LEADVALUE = 5; // Extra worth of pieces if youre winning / losing
-    final int DISTANCEVALUE = 2; // Penalty if piece is to far from other pieces
-    final int CLUTTERINGVALUE = 2; // Pieces are worth more if they are near others
+    final int DISTANCEVALUE = 1; // Penalty if piece is to far from other pieces
+    final int CLUTTERINGVALUE = 1; // Pieces are worth more if they are near others
     final int CHARGEVALUE = 2; // Pieces are worth more if they are further on the board
     final int EDGEVALUE = 2;
+    final int GOLDLIMIT = 10;
+    final int GOLDVALUE = 2; 
+    
+    int[][] groups = new int[51][4];
     
     /** boolean that indicates that the GUI asked the player to stop thinking. */
     private boolean stopped;
@@ -31,6 +35,7 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
     public MyDraughtsPlayer(int maxSearchDepth) {
         super("best.png"); // ToDo: replace with your own icon
         this.maxSearchDepth = 10;
+        fillAdjectends();
     }
     
     @Override public Move getMove(DraughtsState s) {
@@ -227,7 +232,8 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
     /** A method that evaluates the given state. */
     // ToDo: write an appropriate evaluation function
     int evaluate(DraughtsState state) { 
-        int lead = 0;
+        int blackPieces = 0;
+        int whitePieces = 0;
         //obtain pieces array
         int[] pieces = state.getPieces();
         boolean white = true;
@@ -240,26 +246,26 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
             value = 0;
             switch (piece) {
                 case 0: // empty spot
-                    break;
+                    continue;
                 case DraughtsState.WHITEPIECE: // piece is a white piece
                     value = PIECESVALUE;
                     white = true;
-                    lead++;
+                    whitePieces++;
                     break;
                 case DraughtsState.BLACKPIECE: // piece is a black piece
                     value = -1 * PIECESVALUE;
                     white = false;
-                    lead--;
+                    blackPieces++;
                     break;
                 case DraughtsState.WHITEKING: // piece is a white king
                     value = KINGSWORTH;
                     white = true;
-                    lead++;
+                    whitePieces++;
                     break;
                 case DraughtsState.BLACKKING: // piece is a black king
                     value = -1 * KINGSWORTH;
                     white = false;
-                    lead--;
+                    blackPieces++;
                     break;
             }
             //System.out.println("value1: " + value);
@@ -267,15 +273,28 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
             // If piece is on an edge it is worth less
             value = value + checkEdge(i, white);
             
+            // Check whether the piece is surrounded by pieces of its color
+            // And give them bonus points if they do
+            value = value + checkClutter(i, pieces, white);
+            
             // If a piece is deeper on the board, give it more value
             value = value + checkDepth(i, white);
+            
+            // Check for the Golden Stone
+            if(i == 48 && white){
+                value = value + checkGold(blackPieces);
+            }
+            
+            if(i == 3 && !white){
+                value = value - checkGold(whitePieces);
+            }
             
             //System.out.println("value2: " + value);
             computedValue = computedValue + value;
         }
         
         // TRADE PIECES WHEN YOU ARE AHEAD!
-        computedValue = computedValue + getLead(lead, state.isWhiteToMove());
+        computedValue = computedValue + getLead(whitePieces - blackPieces, state.isWhiteToMove());
         
         //System.out.println("Computed value: " + computedValue);
         return computedValue;
@@ -291,6 +310,28 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
             }
         }
         return 0;
+    }
+    
+    // Check how many pieces surround this piece
+    public int checkClutter(int i, int[] pieces, boolean white){
+        int value = 0;
+        for(int piece: groups[i]){
+            if(piece > 0){
+                if(white){
+                    if(pieces[piece] == DraughtsState.WHITEPIECE || 
+                            pieces[piece] == DraughtsState.WHITEKING){
+                        value = value + CLUTTERINGVALUE;
+                    }
+                }else{
+                    if(pieces[piece] == DraughtsState.BLACKPIECE || 
+                            pieces[piece] == DraughtsState.BLACKKING){
+                        value = value - CLUTTERINGVALUE;
+                    }
+                }
+            }
+        }
+        
+        return value;
     }
     
     // If a piece is deeper on the board, give it more value
@@ -321,6 +362,14 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
         return value;
     }
     
+    // Check whether a piece is a Golden Stone
+    public int checkGold(int pieces){
+        if(pieces > GOLDLIMIT){
+            return (pieces - GOLDLIMIT) * GOLDVALUE;
+        }
+        return 0;
+    }
+    
     // TRADE PIECES WHEN YOU ARE AHEAD!
     public int getLead(int lead, boolean white){
         // If white is winning and you are white
@@ -335,5 +384,62 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
             return -1 * LEADVALUE;
         }
         return 0;
+    }
+
+    // Create a table where the adjectend spots are saved for each spot
+    // on the field
+    private void fillAdjectends() {
+        for(int i = 1; i <= 50; i++){
+            boolean below = true;
+            boolean right = true;
+            boolean left = true;
+            boolean above = true;
+            boolean firstRows = false;
+            int value = 0;
+
+            // if top layer
+            if(i <= 5){
+                above = false;
+            }
+            if(i >= 46){
+                below = false;
+            }
+            if(i % 10 == 5){
+                right = false;
+            }
+            if(i % 10 == 6){
+                left = false;
+            }
+            if(i % 10 <= 5 && i % 10 > 0){
+                firstRows = true;
+            }
+            int index = -5;
+            if(!firstRows){
+               index --;
+            }
+            if(above && left){
+                groups[i][0] = i + index;
+            }else{
+                groups[i][0] = 0;
+            }
+
+            if(above && right){
+                groups[i][1] = i + index + 1;
+            }else{
+                groups[i][1] = 0;
+            }
+
+            if(below && left){
+                groups[i][2] = i + index + 10;
+            }else{
+                groups[i][2] = 0;
+            }
+
+            if(below && right){
+                groups[i][3] = i + index + 11;
+            }else{
+                groups[i][3] = 0;
+            }
+        }
     }
 }
