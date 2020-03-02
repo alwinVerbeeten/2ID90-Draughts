@@ -14,7 +14,7 @@ import org10x10.dam.game.Move;
  */
 // ToDo: rename this class (and hence this file) to have a distinct name
 //       for your player during the tournament
-public class MyDraughtsPlayer  extends DraughtsPlayer{
+public class TestPlayer  extends DraughtsPlayer{
     private int bestValue=0;
     int maxSearchDepth = 10;
     final int PIECESVALUE = 10; // Worth of a piece
@@ -23,12 +23,11 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
     final int DISTANCEVALUE = 2; // Penalty if piece is to far from other pieces
     final int CLUTTERINGVALUE = 2; // Pieces are worth more if they are near others
     final int CHARGEVALUE = 2; // Pieces are worth more if they are further on the board
-    final int EDGEVALUE = 2;
     
     /** boolean that indicates that the GUI asked the player to stop thinking. */
     private boolean stopped;
 
-    public MyDraughtsPlayer(int maxSearchDepth) {
+    public TestPlayer(int maxSearchDepth) {
         super("best.png"); // ToDo: replace with your own icon
         this.maxSearchDepth = 10;
     }
@@ -107,10 +106,8 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
             throws AIStoppedException
     {
         if (node.getState().isWhiteToMove()) {
-            System.out.println("you are white");
             return alphaBetaMax(node, alpha, beta, depth);
-        } else  { 
-            System.out.println("you are black");
+        } else  {            
             return alphaBetaMin(node, alpha, beta, depth);
         }
     }
@@ -230,110 +227,32 @@ public class MyDraughtsPlayer  extends DraughtsPlayer{
         int lead = 0;
         //obtain pieces array
         int[] pieces = state.getPieces();
-        boolean white = true;
+        
         int computedValue = 0;
-        int value = 0;
+        
         //Check each square on the board for a piece, add points for white, remove points for black.
-        for (int i = 1; i < pieces.length; i++) {
-            //System.out.println("i: " + i);
-            int piece = pieces[i];
-            value = 0;
+        for (int piece : pieces) {
             switch (piece) {
                 case 0: // empty spot
                     break;
                 case DraughtsState.WHITEPIECE: // piece is a white piece
-                    value = PIECESVALUE;
-                    white = true;
+                    computedValue = computedValue + PIECESVALUE;
                     lead++;
                     break;
                 case DraughtsState.BLACKPIECE: // piece is a black piece
-                    value = -1 * PIECESVALUE;
-                    white = false;
+                    computedValue = computedValue - PIECESVALUE;
                     lead--;
                     break;
                 case DraughtsState.WHITEKING: // piece is a white king
-                    value = KINGSWORTH;
-                    white = true;
+                    computedValue = computedValue + KINGSWORTH;
                     lead++;
                     break;
                 case DraughtsState.BLACKKING: // piece is a black king
-                    value = -1 * KINGSWORTH;
-                    white = false;
+                    computedValue = computedValue - KINGSWORTH;
                     lead--;
                     break;
             }
-            //System.out.println("value1: " + value);
-            //System.out.println("white: " + white);
-            // If piece is on an edge it is worth less
-            value = value + checkEdge(i, white);
-            
-            // If a piece is deeper on the board, give it more value
-            value = value + checkDepth(i, white);
-            
-            //System.out.println("value2: " + value);
-            computedValue = computedValue + value;
         }
-        
-        // TRADE PIECES WHEN YOU ARE AHEAD!
-        computedValue = computedValue + getLead(lead, state.isWhiteToMove());
-        
-        //System.out.println("Computed value: " + computedValue);
         return computedValue;
-    }
-    
-    // If piece is on an edge it is worth less
-    public int checkEdge(int i, boolean white){
-        if(i % 10 == 5 || i % 10 == 6){
-            if(white){
-                return -1 * EDGEVALUE;
-            }else{
-                return EDGEVALUE;
-            }
-        }
-        return 0;
-    }
-    
-    // If a piece is deeper on the board, give it more value
-    public int checkDepth(int i, boolean white){
-        int value = 0;
-        if(white){
-            if(i < 16){
-                value = value + CHARGEVALUE; 
-                if(i < 11){
-                    value = value + CHARGEVALUE; 
-                    if(i < 6){
-                        value = value + CHARGEVALUE; 
-                    }
-                }
-            }
-        }else{
-            if(i > 35){
-                value = value - CHARGEVALUE; 
-                if(i > 40){
-                    value = value - CHARGEVALUE; 
-                    if(i > 45){
-                        value = value - CHARGEVALUE; 
-                    }
-                }
-            }
-        }
-            
-        return value;
-    }
-    
-    // TRADE PIECES WHEN YOU ARE AHEAD!
-    public int getLead(int lead, boolean white){
-        // If white is winning and you are white
-        if(lead > 1 && white){
-            // Then get extra value since you are winning
-            return LEADVALUE;
-        }
-
-        // If black is winning and you are black
-        if(lead < 1 && !white){
-            // Then get extra value since you are winning
-            return -1 * LEADVALUE;
-        }
-        return 0;
     }
 }
