@@ -12,7 +12,6 @@ import org10x10.dam.game.Move;
  * Implementation of the DraughtsPlayer interface.
  * @author huub
  */
-// ToDo: rename this class (and hence this file) to have a distinct name
 //       for your player during the tournament
 public class Skynet  extends DraughtsPlayer{
     private int bestValue=0;
@@ -33,16 +32,9 @@ public class Skynet  extends DraughtsPlayer{
     private boolean stopped;
 
     public Skynet(int maxSearchDepth) {
-        super("TERMINATOR.png"); // ToDo: replace with your own icon
+        super("TERMINATOR.png");
         this.maxSearchDepth = 10;
         fillAdjectends();
-//        for(int r = 1; r < groups.length; r++){
-//            System.out.print("r: " + r + " has: ");
-//            for(int c = 0; c < 4; c++){
-//                System.out.print(groups[r][c] + " ");
-//            }
-//            System.out.println();
-//        }
     }
     
     @Override public Move getMove(DraughtsState s) {
@@ -62,11 +54,15 @@ public class Skynet  extends DraughtsPlayer{
                 bestMove  = node.getBestMove();
 
                 // print the results for debugging reasons
-                System.err.format(
-                    "%s: depth= %2d, best move = %5s, value=%d\n", 
-                    this.getClass().getSimpleName(), depth, bestMove, bestValue
-                );
+                
+//                System.err.format(
+//                    "%s: depth= %2d, best move = %5s, value=%d\n", 
+//                    this.getClass().getSimpleName(), depth, bestMove, bestValue
+//                );
+                
                 depth++; 
+                // if depth becomes too large we know it is somewhat useless to 
+                // go on since it is then close to final boardstate
                 if(depth > 2000){
                     done = true;
                 }
@@ -75,9 +71,7 @@ public class Skynet  extends DraughtsPlayer{
         }}
         
         if (bestMove==null) {
-            System.err.println("no valid move found!");
-            System.out.print(s);
-            System.out.print(s2);
+            //System.err.println("no valid move found!");
             return getRandomValidMove(s2);
         } else {
             return bestMove;
@@ -119,10 +113,8 @@ public class Skynet  extends DraughtsPlayer{
             throws AIStoppedException
     {
         if (node.getState().isWhiteToMove()) {
-            System.out.println("you are white");
             return alphaBetaMax(node, alpha, beta, depth);
         } else  { 
-            System.out.println("you are black");
             return alphaBetaMin(node, alpha, beta, depth);
         }
     }
@@ -147,7 +139,6 @@ public class Skynet  extends DraughtsPlayer{
      int alphaBetaMin(DraughtsNode node, int alpha, int beta, int depth)
             throws AIStoppedException {
         if (stopped) { stopped = false; 
-        System.out.print("STOPPED!");
         throw new AIStoppedException(); 
         }
         DraughtsState state = node.getState();
@@ -159,7 +150,6 @@ public class Skynet  extends DraughtsPlayer{
         List<Move> moves = state.getMoves();
         // Make sure moves isn't empty
         if(moves == null || moves.size() < 1){
-            System.out.print("ERROR!");
             return beta;
         }
         Move bestMove = moves.get(0); // TO DO --------------------
@@ -193,7 +183,6 @@ public class Skynet  extends DraughtsPlayer{
     int alphaBetaMax(DraughtsNode node, int alpha, int beta, int depth)
             throws AIStoppedException {
         if (stopped) { stopped = false; 
-        System.out.print("STOPPED!");
         throw new AIStoppedException(); 
         }
         DraughtsState state = node.getState();
@@ -205,7 +194,6 @@ public class Skynet  extends DraughtsPlayer{
         List<Move> moves = state.getMoves();
         // Make sure moves isn't empty
         if(moves == null || moves.size() < 1){
-            System.out.print("ERROR!");
             return alpha;
         }
         Move bestMove = moves.get(0); // TO DO --------------------
@@ -237,7 +225,6 @@ public class Skynet  extends DraughtsPlayer{
     }
 
     /** A method that evaluates the given state. */
-    // ToDo: write an appropriate evaluation function
     int evaluate(DraughtsState state) { 
         int blackPieces = 0;
         int whitePieces = 0;
@@ -248,7 +235,6 @@ public class Skynet  extends DraughtsPlayer{
         int value = 0;
         //Check each square on the board for a piece, add points for white, remove points for black.
         for (int i = 1; i < pieces.length; i++) {
-            //System.out.println("i: " + i);
             int piece = pieces[i];
             value = 0;
             switch (piece) {
@@ -275,8 +261,6 @@ public class Skynet  extends DraughtsPlayer{
                     blackPieces++;
                     break;
             }
-            //System.out.println("value1: " + value);
-            //System.out.println("white: " + white);
             // If piece is on an edge it is worth less
             value = value + checkEdge(i, white);
             
@@ -296,14 +280,12 @@ public class Skynet  extends DraughtsPlayer{
                 value = value - checkGold(whitePieces);
             }
             
-            //System.out.println("value2: " + value);
-            computedValue = computedValue + value;
+        computedValue = computedValue + value;
         }
         
         // TRADE PIECES WHEN YOU ARE AHEAD!
         computedValue = computedValue + getLead(whitePieces - blackPieces, state.isWhiteToMove());
         
-        //System.out.println("Computed value: " + computedValue);
         return computedValue;
     }
     
@@ -369,7 +351,9 @@ public class Skynet  extends DraughtsPlayer{
         return value;
     }
     
-    // Check whether a piece is a Golden Stone
+    // Check whether a Gold Piece is still worth something
+    // It should not move if there are still many peices eg at the
+    // beginning of the game
     public int checkGold(int pieces){
         if(pieces > GOLDLIMIT){
             return (pieces - GOLDLIMIT) * GOLDVALUE;
@@ -402,21 +386,26 @@ public class Skynet  extends DraughtsPlayer{
             boolean left = true;
             boolean above = true;
             boolean firstRows = false;
-            int value = 0;
 
             // if top layer
             if(i <= 5){
                 above = false;
             }
+            // if botom layer
             if(i >= 46){
                 below = false;
             }
+            // If it is right side of field
             if(i % 10 == 5){
                 right = false;
             }
+            // If it is left side of field
             if(i % 10 == 6){
                 left = false;
             }
+            // Since the rows alternate and have sicht difference in index of 
+            // surrounding pieces we have to make sure it does this as well for 
+            // current piece
             if(i % 10 <= 5 && i % 10 > 0){
                 firstRows = true;
             }
@@ -424,24 +413,25 @@ public class Skynet  extends DraughtsPlayer{
             if(!firstRows){
                index --;
             }
+            // Only check above left field if it exists
             if(above && left){
                 groups[i][0] = i + index;
             }else{
                 groups[i][0] = 0;
             }
-
+            // Only check above right field if it exists
             if(above && right){
                 groups[i][1] = i + index + 1;
             }else{
                 groups[i][1] = 0;
             }
-
+            // Only check lower left field if it exists
             if(below && left){
                 groups[i][2] = i + index + 10;
             }else{
                 groups[i][2] = 0;
             }
-
+            // Only check lower right field if it exists
             if(below && right){
                 groups[i][3] = i + index + 11;
             }else{
