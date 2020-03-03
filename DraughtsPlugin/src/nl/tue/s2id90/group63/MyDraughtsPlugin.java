@@ -20,12 +20,7 @@ public class MyDraughtsPlugin extends DraughtsPlayerProvider implements Draughts
         // During the final competition you should make only your 
         // best player available. For testing it might be handy
         // to make more than one player available.
-        super(new Skynet(10),
-                new TestPlayer(10),
-                new SkynetThatRemembers(10),
-                new UninformedPlayer(),
-                new OptimisticPlayer(),
-                new BuggyPlayer()
+        super(new Skynet(10)
         );
     }
 }

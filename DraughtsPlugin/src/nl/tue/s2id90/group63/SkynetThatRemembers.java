@@ -12,7 +12,7 @@ import org10x10.dam.game.Move;
  * Implementation of the DraughtsPlayer interface.
  * @author huub
  */
-// ToDo: rename this class (and hence this file) to have a distinct name
+// THe SkynetWithMemory is unfinishid attempt to add a TranspositionTable
 //       for your player during the tournament
 public class SkynetThatRemembers  extends DraughtsPlayer{
     private int bestValue=0;

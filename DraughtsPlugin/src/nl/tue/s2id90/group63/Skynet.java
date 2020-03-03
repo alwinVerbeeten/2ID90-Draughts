@@ -13,6 +13,8 @@ import org10x10.dam.game.Move;
  * @author huub
  */
 //       for your player during the tournament
+// THIS IS OUR OFFICIAL PLAYER,
+// THe SkynetWithMemory is unfinishid attempt to add a TranspositionTable
 public class Skynet  extends DraughtsPlayer{
     private int bestValue=0;
     int maxSearchDepth = 10;
