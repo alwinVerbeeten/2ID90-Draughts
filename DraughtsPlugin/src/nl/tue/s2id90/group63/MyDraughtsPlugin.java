@@ -22,6 +22,7 @@ public class MyDraughtsPlugin extends DraughtsPlayerProvider implements Draughts
         // to make more than one player available.
         super(new Skynet(10),
                 new TestPlayer(10),
+                new SkynetThatRemembers(10),
                 new UninformedPlayer(),
                 new OptimisticPlayer(),
                 new BuggyPlayer()
